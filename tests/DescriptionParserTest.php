@@ -106,6 +106,15 @@ class DescriptionParserTest extends TestCase
                     'company' => 'SUPERMARKET ALYIE PARUS',
                     'amount' => Money::of(1122.10, 'RUB'),
                 ]
+            ],
+            [
+                'M6739082  ATM N82 HOTEL BELARUS BIB 19.05.12 19.05.12 100.00 BYN 111111++++++2222',
+                [
+                    'code' => 'M6739082',
+                    'card' => '111111++++++2222',
+                    'company' => 'ATM N82 HOTEL BELARUS BIB',
+                    'amount' => Money::of(100.00, 'BYN'),
+                ]
             ]
         ];
     }

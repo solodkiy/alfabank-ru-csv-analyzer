@@ -54,7 +54,7 @@ class DescriptionParser
         $regexp = '/
         ^
         ((?<code>[\dA-Z]+)_?\ )?
-        ([A-Z]{2}\ )
+        ((?<country>[A-Z]{2})?\ )
         (?<company>([A-Z\d]+\ )?([^>]+))?(>
         (?<city>.+)?)?\ (\d{2}\.\d{2}\.\d{2})\ (\d{2}\.\d{2}\.\d{2})\ (?<sum>[\d\.]+)\ (?<currency>[A-Z]{3})\ (?<card>[\d+]+)
         (\ \(Apple\ Pay.+?\))? 
