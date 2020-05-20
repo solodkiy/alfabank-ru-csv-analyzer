@@ -11,6 +11,7 @@ use Solodkiy\AlfaBankRu\CsvAnalyzer\Model\Transaction;
 use Solodkiy\AlfaBankRu\CsvAnalyzer\Model\TransactionsCollection;
 use Solodkiy\AlfaBankRu\CsvAnalyzer\Model\TransactionsDiff;
 use Solodkiy\AlfaBankRu\CsvAnalyzer\Model\TransactionsMatchMode;
+use Webmozart\Assert\Assert;
 
 final class TransactionsComparator
 {
@@ -157,14 +158,49 @@ final class TransactionsComparator
         if (count($equalAmount) === 1) {
             return Utils::first($equalAmount);
         } elseif (count($equalAmount) > 1) {
+            // If all equal transactions are the same then pick first one
+            if ($this->isAllHoldTransactionsSame($equalAmount)) {
+                return Utils::first($equalAmount);
+            }
+
             if ($mode->equals(TransactionsMatchMode::NORMAL())) {
                 // try hard mode
                 $this->logger->warning('Found more than one. Try hard mode');
                 return $this->matchHold($storedHoldTransactions, $committedTransaction, TransactionsMatchMode::HARD());
             }
-            throw new \RuntimeException('more than one:', $equalAmount, $committedTransaction);
+
+            throw new \RuntimeException('Matched more than one hold transactions: ' . count($equalAmount));
         }
         return null;
+    }
+
+    /**
+     * @param Transaction[] $list
+     * @return bool
+     */
+    private function isAllHoldTransactionsSame(array $list) : bool
+    {
+        Assert::greaterThanEq($list, 1);
+        $list = array_values($list);
+        $first = $list[0];
+        foreach (array_slice($list, 1) as $item) {
+            if ($first->getAccount() != $item->getAccount()) {
+                return false;
+            }
+            if (!$first->getDate()->isEqualTo($item->getDate())) {
+                return false;
+            }
+
+            if (!$first->getAmount()->isEqualTo($item->getAmount())) {
+                return false;
+            }
+
+            if ($first->getDescription() != $item->getDescription()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function isTransactionsSame(Transaction $committed, Transaction $hold, TransactionsMatchMode $mode)
