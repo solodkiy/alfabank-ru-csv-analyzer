@@ -111,10 +111,13 @@ final class TransactionsComparator
                     $this->logger->warning('Found disappeared transaction. Try SoftMode');
                     return $this->internalDiff($originCurrentCollection, $originNewCollection, true);
                 } else {
-                    if ($diff->countNewCommitted() === 1 && count($currentCollection) === 1) {
+                    $newOutCommittedList = array_filter($diff->getNewCommitted(), function (Transaction $transaction) {
+                        return $transaction->getType()->isOut();
+                    });
+                    if (count($newOutCommittedList) === 1 && count($currentCollection) === 1) {
                         $this->logger->warning('Found disappeared transaction. Try ExtraSoftMode match');
                         $holdOne = Utils::first($currentCollection);
-                        $newCommittedTransaction = Utils::first($diff->getNewCommitted());
+                        $newCommittedTransaction = Utils::first($newOutCommittedList);
                         $isSame = $this->isTransactionsSame($newCommittedTransaction, $holdOne, TransactionsMatchMode::EXTRA_SOFT());
                         if ($isSame) {
                             $diff->addUpdated($holdOne->getId(), $newCommittedTransaction);

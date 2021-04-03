@@ -28,4 +28,14 @@ final class TransactionType extends Enum implements \JsonSerializable
     {
         return $this->getValue();
     }
+
+    public function isOut(): bool
+    {
+        return $this->value === self::OUT;
+    }
+
+    public function isIn(): bool
+    {
+        return $this->value === self::IN;
+    }
 }
