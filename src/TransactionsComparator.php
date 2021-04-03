@@ -42,18 +42,17 @@ final class TransactionsComparator
         $originNewCollection = $newCollection;
 
         if ($newCollection->isEmpty()) {
-            // Возвращаем emptyDiff. В релаьности это может быть ошибкой, но пока забиваем на это
+            // Возвращаем emptyDiff. В реальности это может быть ошибкой, но пока забиваем на это
             return new TransactionsDiff();
         }
 
         $diff = new TransactionsDiff();
         $currentCollection = $this->trimBeforeDay($currentCollection, $newCollection->getFirstDay());
 
+        // Удаляем из все транзакции присутствующие в обоих файлах
         foreach ($newCollection as $newTransaction) {
             /** @var Transaction $newTransaction */
-            $currentTransaction = $newTransaction->isHold()
-                                ? $currentCollection->findByData($newTransaction)
-                                : $currentCollection->findByReference($newTransaction->getReference());
+            $currentTransaction = $currentCollection->findByData($newTransaction);
             if ($currentTransaction) {
                 $currentCollection = $currentCollection->without($currentTransaction->getId());
                 $newCollection = $newCollection->without($newTransaction->getId());
@@ -91,6 +90,7 @@ final class TransactionsComparator
             throw new \RuntimeException('Found disappeared committed transactions!');
         }
 
+        /** @var Transaction $newCommittedTransaction */
         foreach ($newCollection->filterCommitted() as $newCommittedTransaction) {
             $mode = $softMode ? TransactionsMatchMode::SOFT() : TransactionsMatchMode::NORMAL();
 

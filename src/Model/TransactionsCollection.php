@@ -44,10 +44,16 @@ final class TransactionsCollection implements IteratorAggregate, \Countable
         });
     }
 
-    public function findByReference(string $reference): ?Transaction
+    /**
+     * @param string $reference
+     * @param TransactionType $type
+     * @return Transaction|null
+     * @deprecated По одному reference может быть несколько разных транзакций (committed and refunded)
+     */
+    public function findByReference(string $reference, TransactionType $type): ?Transaction
     {
-        return Utils::first($this, function (Transaction $transaction) use ($reference) {
-            return $transaction->getReference() === $reference;
+        return Utils::first($this, function (Transaction $transaction) use ($reference, $type) {
+            return $transaction->getReference() === $reference && $transaction->getType()->equals($type);
         });
     }
 
@@ -90,6 +96,7 @@ final class TransactionsCollection implements IteratorAggregate, \Countable
             return $transaction->isHold();
         });
     }
+
     public function filterCommitted(): self
     {
         return $this->filter(function (Transaction $transaction) {
