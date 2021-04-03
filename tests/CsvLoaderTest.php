@@ -86,6 +86,34 @@ class CsvLoaderTest extends TestCase
         $this->assertEquals($expectedResult, $data);
     }
 
+    public function testIncomeCard()
+    {
+        $content = file_get_contents(__DIR__ . '/data/income_card.csv');
+        $loader = new CsvLoader();
+        $result = $loader->loadFromString($content);
+
+        $data = $this->collectionToArray($result);
+
+        $expectedResult = [
+            [
+                'date' => '2019-07-21',
+                'account' => '40820000000011112222',
+                'amount' => 'RUB 12792.00',
+                'type' => 'in',
+                'description' => '408200++++++2222    \280\Berlin\GetYourGuide                          21.07.19 19.07.19     12792.00  RUR MCC7991',
+            ],
+            [
+                'date' => '2019-07-21',
+                'account' => '40820000000011112222',
+                'amount' => 'RUB 12660.00',
+                'type' => 'out',
+                'description' => '408200++++++2222    \280\Berlin\GetYourGuide                          20.07.19 18.07.19     12660.00  RUR MCC7991',
+            ],
+        ];
+        $this->assertEquals($expectedResult, $data);
+    }
+
+
     private function collectionToArray(TransactionsCollection $collection) : array
     {
         return Utils::map($collection, function (Transaction $transaction) {
