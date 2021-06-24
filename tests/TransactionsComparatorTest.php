@@ -3,6 +3,7 @@
 namespace Solodkiy\AlfaBankRu\CsvAnalyzer;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Log\AbstractLogger;
 
 class TransactionsComparatorTest extends TestCase
 {
@@ -18,8 +19,15 @@ class TransactionsComparatorTest extends TestCase
         $currentCollection = $loader->loadFromFile($currentPath);
         $newCollection = $loader->loadFromFile($newPath);
 
+        $printLogger = new class extends AbstractLogger {
+            public function log($level, $message, array $context = array())
+            {
+                echo '[' . $level . '] ' . $message . "\n";
+            }
+        };
 
         $differ = new TransactionsComparator();
+        //$differ->setLogger($printLogger);
         $diff = $differ->diff($currentCollection, $newCollection);
 
         $this->assertEquals($expectedStat, $diff->stat());

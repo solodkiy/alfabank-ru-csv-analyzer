@@ -60,10 +60,14 @@ final class TransactionsComparator
             }
         }
 
+        $this->logger->debug('Transactions after first clean up. Current collection: ' . count($currentCollection).', New collection: ' . count($newCollection));
+
         foreach ($newCollection->filterHold() as $newHoldTransaction) {
             $diff->addNew($newHoldTransaction);
             $newCollection = $newCollection->without($newHoldTransaction->getId());
         }
+        $this->logger->debug('Filter ' . $diff->countNewHold() . ' new hold ');
+
 
         // Process disappeared transactions
         /*
@@ -81,8 +85,8 @@ final class TransactionsComparator
                 /** @var $transaction Transaction */
                 $reference = $transaction->getReference();
                 if ($reference[0] == 'B') {
+                    $this->logger->warning('Skip disappeared B-type transaction: ' . $reference);
                     $leftCommitted = $leftCommitted->without($transaction->getId());
-                    $this->logger->warning('Try to skip disappeared B-type transactions');
                 }
             }
         }
@@ -108,7 +112,7 @@ final class TransactionsComparator
         if (count($currentCollection)) {
             if ($diff->countNewCommitted() > 0) {
                 if (!$softMode) {
-                    $this->logger->warning('Found disappeared transaction. Try SoftMode');
+                    $this->logger->warning('Found '. count($currentCollection). ' disappeared transaction. Try SoftMode');
                     return $this->internalDiff($originCurrentCollection, $originNewCollection, true);
                 } else {
                     $newOutCommittedList = array_filter($diff->getNewCommitted(), function (Transaction $transaction) {
@@ -127,7 +131,13 @@ final class TransactionsComparator
                             throw new \RuntimeException('Found disappeared transaction. In ExtraSoftMode!');
                         }
                     } else {
-                        throw new \RuntimeException('Found disappeared transaction. In SoftMode!');
+                        foreach ($currentCollection as $transaction) {
+                            $this->logger->debug('Disappear: ' . $transaction->getDescription());
+                        }
+                        foreach ($newOutCommittedList as $transaction) {
+                            $this->logger->debug('New out: ' . $transaction->getReference());
+                        }
+                        throw new \RuntimeException('Found '.count($currentCollection). ' disappeared transaction. In SoftMode!');
                     }
                 }
             } else {
@@ -222,6 +232,7 @@ final class TransactionsComparator
             return false;
         }
 
+
         if ($mode->isExtraSoft()) {
             return true;
         }
@@ -246,7 +257,7 @@ final class TransactionsComparator
             return true;
         } else {
             if ($mode->isSoft()) {
-	        if (is_null($committedInfo)) {
+                if (is_null($committedInfo)) {
                     return false;
                 }
                 $sourceCurrency = $committedInfo['amount']->getCurrency();
