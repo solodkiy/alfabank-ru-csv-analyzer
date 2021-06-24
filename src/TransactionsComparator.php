@@ -112,7 +112,8 @@ final class TransactionsComparator
                     return $this->internalDiff($originCurrentCollection, $originNewCollection, true);
                 } else {
                     $newOutCommittedList = array_filter($diff->getNewCommitted(), function (Transaction $transaction) {
-                        return $transaction->getType()->isOut();
+                        // filter only out CRD transactions
+                        return $transaction->getType()->isOut() && substr((string)$transaction->getReference(), 0, 4) === 'CRD_';
                     });
                     if (count($newOutCommittedList) === 1 && count($currentCollection) === 1) {
                         $this->logger->warning('Found disappeared transaction. Try ExtraSoftMode match');
