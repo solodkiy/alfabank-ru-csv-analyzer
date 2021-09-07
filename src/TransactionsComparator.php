@@ -112,7 +112,7 @@ final class TransactionsComparator
         if (count($currentCollection)) {
             if ($diff->countNewCommitted() > 0) {
                 if (!$softMode) {
-                    $this->logger->warning('Found '. count($currentCollection). ' disappeared transaction. Try SoftMode');
+                    $this->logger->warning('Found '. count($currentCollection). ' disappeared transactions (' . $this->transactionsListToString($currentCollection) . '). Try SoftMode');
                     return $this->internalDiff($originCurrentCollection, $originNewCollection, true);
                 } else {
                     $newOutCommittedList = array_filter($diff->getNewCommitted(), function (Transaction $transaction) {
@@ -137,7 +137,7 @@ final class TransactionsComparator
                         foreach ($newOutCommittedList as $transaction) {
                             $this->logger->debug('New out: ' . $transaction->getReference());
                         }
-                        throw new \RuntimeException('Found '.count($currentCollection). ' disappeared transaction. In SoftMode!');
+                        throw new \RuntimeException('Found ' . count($currentCollection) . ' disappeared transaction. In SoftMode! (' . $this->transactionsListToString($currentCollection) . ')');
                     }
                 }
             } else {
@@ -189,18 +189,21 @@ final class TransactionsComparator
                 return $this->matchHold($storedHoldTransactions, $committedTransaction, TransactionsMatchMode::NORMAL());
             }
 
-            throw new \RuntimeException('Matched more than one hold transactions for ' . $committedTransaction->getDescription() . ': ' . $this->transactionsListToString($equalAmount));
+            throw new \RuntimeException('Matched more than one hold transactions for "' . $committedTransaction->getDescription() . '": ' . $this->transactionsListToString($equalAmount));
         }
         return null;
     }
 
-    private function transactionsListToString(array $transactions) : string
+    private function transactionsListToString(iterable $transactions) : string
     {
         $descriptions = [];
         foreach ($transactions as $transaction) {
             $descriptions[] = $transaction->getDescription();
         }
-        return implode(', ', $descriptions);
+        if ($descriptions) {
+            return '"' . implode('", "', $descriptions) . '"';
+        }
+        return '';
     }
 
     /**
