@@ -183,9 +183,24 @@ final class TransactionsComparator
                 return $this->matchHold($storedHoldTransactions, $committedTransaction, TransactionsMatchMode::HARD());
             }
 
-            throw new \RuntimeException('Matched more than one hold transactions: ' . count($equalAmount));
+            if ($mode->equals(TransactionsMatchMode::SOFT())) {
+                // try normal mode
+                $this->logger->warning('Found more than one. Try normal mode');
+                return $this->matchHold($storedHoldTransactions, $committedTransaction, TransactionsMatchMode::NORMAL());
+            }
+
+            throw new \RuntimeException('Matched more than one hold transactions for ' . $committedTransaction->getDescription() . ': ' . $this->transactionsListToString($equalAmount));
         }
         return null;
+    }
+
+    private function transactionsListToString(array $transactions) : string
+    {
+        $descriptions = [];
+        foreach ($transactions as $transaction) {
+            $descriptions[] = $transaction->getDescription();
+        }
+        return implode(', ', $descriptions);
     }
 
     /**

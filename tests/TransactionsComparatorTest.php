@@ -116,6 +116,28 @@ class TransactionsComparatorTest extends TestCase
                     'deleted' => 0,
                 ]
             ],
+            /*
+            [
+                __DIR__ . '/data/trans/first.csv',
+                __DIR__ . '/data/trans/second.csv',
+                [
+                    'new_hold' => 10,
+                    'new_committed' => 7,
+                    'updated' => 25,
+                    'deleted' => 0,
+                ]
+            ],
+            */
+            [
+                __DIR__ . '/data/case9/first.csv',
+                __DIR__ . '/data/case9/second.csv',
+                [
+                    'new_hold' => 3,
+                    'new_committed' => 0,
+                    'updated' => 4,
+                    'deleted' => 0,
+                ]
+            ],
         ];
     }
 }
